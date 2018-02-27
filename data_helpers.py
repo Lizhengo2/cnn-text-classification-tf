@@ -73,7 +73,7 @@ def load_data_and_labels(data_path, vocab_path, max_length):
                     # one_y[token2id_in_words[word]] = 1
                     y.append(token2id_in_words[word])
 
-    return np.array(x_text), np.array(y), in_words_count, in_letters_count
+    return np.array(x_text, dtype=np.int32), np.array(y, dtype=np.int32), in_words_count, in_letters_count
 
 
 def batch_iter(data, batch_size, data_size, num_batches_per_epoch):
