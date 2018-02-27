@@ -8,7 +8,7 @@ import datetime
 import data_helpers
 from text_cnn import TextCNN
 from tensorflow.contrib import learn
-
+import sys
 # Parameters
 # ==================================================
 
@@ -152,7 +152,9 @@ with tf.Graph().as_default():
                 time_str = datetime.datetime.now().isoformat()
                 print("{}: step {}, loss {:g}, acc {:g}".format(time_str, epoch_size * 1.0 / num_batches_per_epoch
                                                                 , loss, accuracy))
+                sys.stdout.flush()
                 train_summary_writer.add_summary(summaries, step)
+
 
         def dev_step(x_batch, y_batch, writer=None):
             """
