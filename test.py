@@ -24,8 +24,8 @@ class InputEngineRnn:
             #initializer = tf.random_uniform_initializer(-self._config.init_scale, self._config.init_scale)
 
             self.model_test = TextCNN(sequence_length=20,
-                                        num_classes=6489,
-                                        vocab_size=29,
+                                        num_classes=self._data_utility.in_words_count,
+                                        vocab_size=self._data_utility.in_letters_count,
                                         embedding_size=128,
                                         filter_sizes=[3,4,5],
                                         num_filters=128,

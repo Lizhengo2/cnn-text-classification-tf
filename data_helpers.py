@@ -69,9 +69,9 @@ def load_data_and_labels(data_path, vocab_path, max_length):
                                  + [0] * (max_length - len(char_list))
                     x_text.append(one_x_text)
 
-                    one_y = [0 for _ in range(in_words_count)]
-                    one_y[token2id_in_words[word]] = 1
-                    y.append(one_y)
+                    # one_y = [0 for _ in range(in_words_count)]
+                    # one_y[token2id_in_words[word]] = 1
+                    y.append(token2id_in_words[word])
 
     return np.array(x_text), np.array(y), in_words_count, in_letters_count
 

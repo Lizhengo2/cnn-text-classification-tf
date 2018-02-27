@@ -13,7 +13,8 @@ class TextCNN(object):
 
         # Placeholders for input, output and dropout
         self.input_x = tf.placeholder(tf.int32, [None, sequence_length], name="input_x")
-        self.input_y = tf.placeholder(tf.float32, [None, num_classes], name="input_y")
+        self.input_y = tf.placeholder(tf.int32, [None], name="input_y")
+        self.mask = tf.placeholder(tf.float32, [None], name="mask")
         self.dropout_keep_prob = tf.placeholder(tf.float32, name="dropout_keep_prob")
 
         # Keeping track of l2 regularization loss (optional)
@@ -72,15 +73,20 @@ class TextCNN(object):
             l2_loss += tf.nn.l2_loss(b)
             self.scores = tf.nn.xw_plus_b(self.h_drop, W, b, name="scores")
             self.probs = tf.nn.softmax(self.scores, name="probabilities")
-            self.predictions = tf.argmax(self.scores, 1, name="predictions")
+            self.predictions = tf.argmax(self.scores, 1,  name="predictions")
+            self.predictions = tf.cast(self.predictions, tf.int32)
             self.top_probs = tf.reduce_max(self.probs, 1, name="top_probabilities")
 
             # Calculate mean cross-entropy loss
         with tf.name_scope("loss"):
-            losses = tf.nn.softmax_cross_entropy_with_logits(logits=self.scores, labels=self.input_y)
+            #losses = tf.nn.softmax_cross_entropy_with_logits(logits=self.scores, labels=self.input_y)
+            losses = tf.contrib.legacy_seq2seq.sequence_loss_by_example([self.scores],
+                                                               [self.input_y],
+                                                               [self.mask],
+                                                               average_across_timesteps=False)
             self.loss = tf.reduce_mean(losses) + l2_reg_lambda * l2_loss
 
         # Accuracy
         with tf.name_scope("accuracy"):
-            correct_predictions = tf.equal(self.predictions, tf.argmax(self.input_y, 1))
+            correct_predictions = tf.equal(self.predictions, self.input_y)
             self.accuracy = tf.reduce_mean(tf.cast(correct_predictions, "float"), name="accuracy")

@@ -35,6 +35,8 @@ class DataUtility:
                     self.id2token_in_letters[id] = token
                     self.token2id_in_letters[token] = id
 
+            self.in_letters_count = len(self.token2id_in_letters)
+
     def word2id(self, word):
         if re.match("^[a-zA-Z]$", word) or (word in self.token2id_in_words):
             word_out = word
