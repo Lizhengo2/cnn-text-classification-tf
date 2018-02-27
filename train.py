@@ -84,7 +84,7 @@ with tf.Graph().as_default():
             l2_reg_lambda=FLAGS.l2_reg_lambda)
 
         # Define Training procedure
-        global_step = tf.Variable(0, name="global_step", trainable=False)
+        global_step = tf.Variable(0, dtype=tf.int32, name="global_step", trainable=False)
         optimizer = tf.train.AdamOptimizer(1e-3)
         grads_and_vars = optimizer.compute_gradients(cnn.loss)
         train_op = optimizer.apply_gradients(grads_and_vars, global_step=global_step)
