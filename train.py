@@ -206,7 +206,7 @@ with tf.Graph().as_default():
                 epoch_size += 1
             current_step = tf.train.global_step(sess, global_step)
             print("\nEvaluation:")
-            dev_step(x_dev, y_dev, writer=dev_summary_writer)
+            #dev_step(x_dev, y_dev, writer=dev_summary_writer)
             print("")
             if FLAGS.save_path:
                 path = saver.save(sess, checkpoint_prefix, global_step=current_step)
