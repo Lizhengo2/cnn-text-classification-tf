@@ -7,7 +7,7 @@ import os
 import tensorflow as tf
 from data_utility_dynamic import DataUtility
 from text_cnn import TextCNN
-
+import time
 
 class InputEngineRnn:
 
@@ -66,26 +66,69 @@ class InputEngineRnn:
 
         return words_list, probs_list
 
+    def predict_data(self, sentence):
+        global probabilities, top_k_predictions
+        words, keys, inputs = self._data_utility.data2ids_line(sentence)
+        if '' in keys:
+            return None
+        # print(inputs)
+        feed_values = {self.model_test.input_x:inputs, self.model_test.dropout_keep_prob: 1.0}
+
+        vals = self._sess.run(self._fetches,feed_dict=feed_values)
+        top_k_predictions = vals["topk"]
+        probabilities = vals["probability"]
+
+        # print(top_k_predictions)
+        # print(probabilities)
+        words_list = self._data_utility.ids2inwords(top_k_predictions)
+        # probs_list = [str(prob) for prob in probabilities]
+
+        return words, keys, words_list
+
+    def predict_file(self, test_file_in, test_file_out):
+        testfilein = open(test_file_in, "r")
+        testfileout = open(test_file_out, 'w')
+        t1 = time.time()
+
+        for sentence in testfilein:
+            sentence = sentence.rstrip()
+            result = self.predict_data(sentence)
+            if result is not None:
+                words, keys, out_words = result
+
+                print(" ".join(words) + "|#|" + " ".join(keys) + "|#|" +
+                      "|".join(out_words))
+                testfileout.write(" ".join(words) + "|#|" + " ".join(keys) + "|#|" +
+                                  "|".join(out_words) + "\n")
+
+        t2 = time.time()
+        print(t2 - t1)
+        testfilein.close()
+        testfileout.close()
+
 if __name__ == "__main__":
     args = sys.argv
 
     model_path = args[1]
     #model_name = args[2]
     vocab_path = args[2]
-    #test_file_in = args[4]
-    #test_file_out = "test_result_correct_word_lm_20-25"
+    phase = args[3]
     engine = InputEngineRnn(model_path, vocab_path)
-    #engine.predict_file(test_file_in, test_file_out, 3)
 
-    while True:
-        sentence = input("please enter sentence:")
-        if sentence == "quit()":
-            exit()
-        if sentence == "":
-            continue
-        words, probs = engine.predict(sentence.strip())
-        words = " ".join(words)
-        probs = " ".join(probs)
-        print(sentence)
-        print(words)
-        print(probs)
+    if phase == "online":
+        while True:
+            sentence = input("please enter sentence:")
+            if sentence == "quit()":
+                exit()
+            if sentence == "":
+                continue
+            words, probs = engine.predict(sentence.strip())
+            words = " ".join(words)
+            probs = " ".join(probs)
+            print(sentence)
+            print(words)
+            print(probs)
+    if phase == "file":
+        test_file_in = args[4]
+        test_file_out = "test_result"
+        engine.predict_file(test_file_in, test_file_out)

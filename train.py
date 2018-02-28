@@ -7,8 +7,8 @@ import time
 import datetime
 import data_helpers
 from text_cnn import TextCNN
-from tensorflow.contrib import learn
 import sys
+
 # Parameters
 # ==================================================
 
@@ -16,6 +16,7 @@ import sys
 tf.flags.DEFINE_float("dev_sample_percentage", .01, "Percentage of the training data to use for validation")
 tf.flags.DEFINE_string("data_path", "data/char-data/", "Data source for the chars data.")
 tf.flags.DEFINE_string("vocab_path", "data/char-data/", "Vocab source for the chars data.")
+tf.flags.DEFINE_string("save_path", "runs/", "Vocab source for the chars data.")
 
 # Model Hyperparameters
 tf.flags.DEFINE_integer("embedding_dim", 128, "Dimensionality of character embedding (default: 128)")
@@ -101,7 +102,7 @@ with tf.Graph().as_default():
 
         # Output directory for models and summaries
         timestamp = str(int(time.time()))
-        out_dir = os.path.abspath(os.path.join(os.path.curdir, "runs", timestamp))
+        out_dir = FLAGS.save_path
         print("Writing to {}\n".format(out_dir))
 
         # Summaries for loss and accuracy
@@ -132,6 +133,14 @@ with tf.Graph().as_default():
 
         # Initialize all variables
         sess.run(tf.global_variables_initializer())
+
+        ckpt = tf.train.get_checkpoint_state(checkpoint_dir)
+        if ckpt and tf.train.checkpoint_exists(ckpt.model_checkpoint_path):
+            print("Reading model parameters from %s" % ckpt.model_checkpoint_path)
+            saver.restore(sess, ckpt.model_checkpoint_path)
+        else:
+            print("Created model with fresh parameters.")
+
 
         def train_step(x_batch, y_batch, epoch_size, num_batches_per_epoch):
             """
@@ -191,11 +200,14 @@ with tf.Graph().as_default():
                 # if epoch_size >= 100:
                 #     break
                 x_batch, y_batch = zip(*batch)
+                # print(x_batch)
+                # print(y_batch)
                 train_step(x_batch, y_batch, epoch_size, num_batches_per_epoch)
                 epoch_size += 1
             current_step = tf.train.global_step(sess, global_step)
             print("\nEvaluation:")
             dev_step(x_dev, y_dev, writer=dev_summary_writer)
             print("")
-            path = saver.save(sess, checkpoint_prefix, global_step=current_step)
-            print("Saved model checkpoint to {}\n".format(path))
+            if FLAGS.save_path:
+                path = saver.save(sess, checkpoint_prefix, global_step=current_step)
+                print("Saved model checkpoint to {}\n".format(path))
