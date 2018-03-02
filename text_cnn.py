@@ -64,14 +64,18 @@ class TextCNN(object):
 
         # Final (unnormalized) scores and predictions
         with tf.name_scope("output"):
+            pool_flat_to_embedding_matrix = tf.get_variable(
+                "pool_flat_to_embedding_matrix",
+                shape=[num_filters_total, embedding_size], dtype=tf.float32)
             W = tf.get_variable(
                 "W",
-                shape=[num_filters_total, num_classes],dtype=tf.float32,
+                shape=[embedding_size, num_classes], dtype=tf.float32,
                 initializer=tf.contrib.layers.xavier_initializer())
             b = tf.Variable(tf.constant(0.1, shape=[num_classes]), dtype=tf.float32, name="b")
             l2_loss += tf.nn.l2_loss(W)
             l2_loss += tf.nn.l2_loss(b)
-            self.scores = tf.nn.xw_plus_b(self.h_drop, W, b, name="scores")
+            self.scores = tf.nn.xw_plus_b(tf.matmul(self.h_drop, pool_flat_to_embedding_matrix), W, b, name="scores")
+            # self.scores = tf.nn.xw_plus_b(self.h_drop, W, b, name="scores")
             self.probs = tf.nn.softmax(self.scores, name="probabilities")
             self.predictions = tf.argmax(self.scores, 1,  name="predictions")
             self.predictions = tf.cast(self.predictions, tf.int32)
